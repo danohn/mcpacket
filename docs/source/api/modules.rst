@@ -18,3 +18,19 @@ DNS Module
    :members:
    :undoc-members:
    :show-inheritance:
+
+DHCP Module
+-----------
+
+.. automodule:: mcpcap.modules.dhcp
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+ICMP Module
+-----------
+
+.. automodule:: mcpcap.modules.icmp
+   :members:
+   :undoc-members:
+   :show-inheritance:

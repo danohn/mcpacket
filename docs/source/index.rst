@@ -72,7 +72,9 @@ Then use analysis tools with any PCAP file:
 .. toctree::
    :maxdepth: 2
    :caption: Developer Guide
-   :hidden:
+
+   developer/contributing
+   developer/module-creation-tutorial
 
 .. toctree::
    :maxdepth: 1

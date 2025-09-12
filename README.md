@@ -13,7 +13,7 @@ mcpcap uses a modular architecture to analyze different network protocols found 
 ### Key Features
 
 - **Stateless MCP Tools**: Each analysis accepts PCAP file paths or URLs as parameters
-- **Modular Architecture**: DNS and DHCP modules with easy extensibility for new protocols  
+- **Modular Architecture**: DNS, DHCP, and ICMP modules with easy extensibility for new protocols  
 - **Local & Remote PCAP Support**: Analyze files from local storage or HTTP URLs
 - **Scapy Integration**: Leverages scapy's comprehensive packet parsing capabilities
 - **Specialized Analysis Prompts**: Security, networking, and forensic analysis guidance
@@ -48,7 +48,7 @@ uvx mcpcap
 Start mcpcap as a stateless MCP server:
 
 ```bash
-# Default: Start with both DNS and DHCP modules
+# Default: Start with DNS, DHCP, and ICMP modules
 mcpcap
 
 # Start with specific modules only
@@ -89,6 +89,12 @@ analyze_dhcp_packets("/path/to/dhcp.pcap")
 analyze_dhcp_packets("https://example.com/dhcp-capture.pcap")
 ```
 
+**ICMP Analysis:**
+```
+analyze_icmp_packets("/path/to/icmp.pcap")
+analyze_icmp_packets("https://example.com/ping-capture.pcap")
+```
+
 ## Available Tools
 
 ### DNS Analysis Tools
@@ -109,6 +115,15 @@ analyze_dhcp_packets("https://example.com/dhcp-capture.pcap")
   - Analyze DHCP options and configurations
   - Detect DHCP anomalies and security issues
 
+### ICMP Analysis Tools
+
+- **`analyze_icmp_packets(pcap_file)`**: Complete ICMP traffic analysis
+  - Analyze ping requests and replies with response times
+  - Identify network connectivity and reachability issues
+  - Track TTL values and routing paths (traceroute data)
+  - Detect ICMP error messages (unreachable, time exceeded)
+  - Monitor for potential ICMP-based attacks or reconnaissance
+
 ## Analysis Prompts
 
 mcpcap provides specialized analysis prompts to guide LLM analysis:
@@ -123,6 +138,11 @@ mcpcap provides specialized analysis prompts to guide LLM analysis:
 - **`dhcp_security_analysis`** - Security threats and rogue DHCP detection
 - **`dhcp_forensic_investigation`** - Forensic analysis of DHCP transactions
 
+### ICMP Prompts
+- **`icmp_network_diagnostics`** - Network connectivity and path analysis
+- **`icmp_security_analysis`** - ICMP-based attacks and reconnaissance detection
+- **`icmp_forensic_investigation`** - Timeline reconstruction and network mapping
+
 ## Configuration Options
 
 ### Module Selection
@@ -130,8 +150,9 @@ mcpcap provides specialized analysis prompts to guide LLM analysis:
 ```bash
 # Load specific modules
 mcpcap --modules dns              # DNS analysis only
-mcpcap --modules dhcp             # DHCP analysis only  
-mcpcap --modules dns,dhcp         # Both modules (default)
+mcpcap --modules dhcp             # DHCP analysis only
+mcpcap --modules icmp             # ICMP analysis only  
+mcpcap --modules dns,dhcp,icmp    # All modules (default)
 ```
 
 ### Analysis Limits
@@ -144,7 +165,7 @@ mcpcap --max-packets 1000
 ### Complete Configuration Example
 
 ```bash
-mcpcap --modules dns,dhcp --max-packets 500
+mcpcap --modules dns,dhcp,icmp --max-packets 500
 ```
 
 ## CLI Reference
@@ -154,8 +175,8 @@ mcpcap [--modules MODULES] [--max-packets N]
 ```
 
 **Options:**
-- `--modules MODULES`: Comma-separated modules to load (default: `dns,dhcp`)
-  - Available modules: `dns`, `dhcp`
+- `--modules MODULES`: Comma-separated modules to load (default: `dns,dhcp,icmp`)
+  - Available modules: `dns`, `dhcp`, `icmp`
 - `--max-packets N`: Maximum packets to analyze per file (default: unlimited)
 
 **Examples:**
@@ -176,6 +197,7 @@ Example PCAP files are included in the `examples/` directory:
 
 - `dns.pcap` - DNS traffic for testing DNS analysis
 - `dhcp.pcap` - DHCP 4-way handshake capture
+- `icmp.pcap` - ICMP ping and traceroute traffic
 
 ### Using with MCP Inspector
 
@@ -189,6 +211,7 @@ Then test the tools:
 // In the MCP Inspector web interface
 analyze_dns_packets("./examples/dns.pcap")
 analyze_dhcp_packets("./examples/dhcp.pcap")
+analyze_icmp_packets("./examples/icmp.pcap")
 ```
 
 ## Architecture
@@ -197,7 +220,7 @@ mcpcap's modular design supports easy extension:
 
 ### Core Components
 1. **BaseModule**: Shared file handling, validation, and remote download
-2. **Protocol Modules**: DNS and DHCP analysis implementations  
+2. **Protocol Modules**: DNS, DHCP, and ICMP analysis implementations  
 3. **MCP Interface**: Tool registration and prompt management
 4. **FastMCP Framework**: MCP server implementation
 
@@ -222,6 +245,7 @@ Future modules might include:
 - HTTP/HTTPS traffic analysis
 - TCP connection tracking  
 - BGP routing analysis
+- SSL/TLS certificate analysis
 - Network forensics tools
 
 ## Remote File Support
@@ -232,6 +256,7 @@ Both analysis tools accept remote PCAP files via HTTP/HTTPS URLs:
 # Examples of remote analysis
 analyze_dns_packets("https://wiki.wireshark.org/uploads/dns.cap")
 analyze_dhcp_packets("https://example.com/network-capture.pcap")
+analyze_icmp_packets("https://example.com/ping-test.pcap")
 ```
 
 **Features:**

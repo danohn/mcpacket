@@ -42,6 +42,9 @@ dev = [
     "build",
     "twine",
     "ruff",
+    "mypy",
+    "pytest",
+    "pytest-cov",
 ]
 docs = [
     "sphinx>=7.0",
@@ -95,3 +98,20 @@ quote-style = "double"
 indent-style = "space"
 skip-magic-trailing-comma = false
 line-ending = "auto"
+
+# MyPy configuration
+[tool.mypy]
+python_version = "3.10"
+mypy_path = "src"
+packages = ["mcpcap"]
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true

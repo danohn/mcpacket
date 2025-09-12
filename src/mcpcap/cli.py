@@ -28,8 +28,8 @@ def main():
     # Analysis options
     parser.add_argument(
         "--modules",
-        help="Comma-separated list of modules to load (default: dns,dhcp)",
-        default="dns,dhcp",
+        help="Comma-separated list of modules to load (default: dns,dhcp,icmp)",
+        default="dns,dhcp,icmp",
     )
     parser.add_argument(
         "--max-packets",
@@ -41,7 +41,7 @@ def main():
 
     try:
         # Parse modules and automatically set protocols to match
-        modules = args.modules.split(",") if args.modules else ["dns", "dhcp"]
+        modules = args.modules.split(",") if args.modules else ["dns", "dhcp", "icmp"]
         protocols = modules  # Protocols automatically match loaded modules
 
         # Initialize configuration
