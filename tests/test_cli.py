@@ -10,7 +10,7 @@ class TestCLI:
 
     @patch("mcpcap.cli.MCPServer")
     @patch("mcpcap.cli.Config")
-    @patch("sys.argv", ["mcpcap", "--pcap-path", "/valid/path"])
+    @patch("sys.argv", ["mcpcap"])
     def test_main_success(self, mock_config, mock_server):
         """Test successful main execution."""
         # Setup mocks
@@ -25,10 +25,8 @@ class TestCLI:
 
         # Verify behavior
         mock_config.assert_called_once_with(
-            pcap_path="/valid/path",
-            pcap_url=None,
-            modules=["dns"],
-            protocols=["dns"],
+            modules=["dns", "dhcp"],
+            protocols=["dns", "dhcp"],
             max_packets=None,
         )
         mock_server.assert_called_once_with(config_instance)
@@ -36,23 +34,23 @@ class TestCLI:
         assert result == 0
 
     @patch("mcpcap.cli.Config")
-    @patch("sys.argv", ["mcpcap", "--pcap-path", "/invalid/path"])
-    def test_main_invalid_path(self, mock_config):
-        """Test main with invalid path."""
+    @patch("sys.argv", ["mcpcap", "--max-packets", "-1"])
+    def test_main_invalid_config(self, mock_config):
+        """Test main with invalid configuration."""
         # Setup mock to raise ValueError
-        mock_config.side_effect = ValueError("Path does not exist")
+        mock_config.side_effect = ValueError("max_packets must be a positive integer")
 
         # Run main and capture output
         with patch("sys.stderr") as mock_stderr:
             result = main()
 
         # Verify error handling
-        mock_stderr.write.assert_any_call("Error: Path does not exist")
+        mock_stderr.write.assert_any_call("Error: max_packets must be a positive integer")
         assert result == 1
 
     @patch("mcpcap.cli.MCPServer")
     @patch("mcpcap.cli.Config")
-    @patch("sys.argv", ["mcpcap", "--pcap-path", "/valid/path"])
+    @patch("sys.argv", ["mcpcap"])
     def test_main_keyboard_interrupt(self, mock_config, mock_server):
         """Test main with keyboard interrupt."""
         # Setup mocks
@@ -73,7 +71,7 @@ class TestCLI:
 
     @patch("mcpcap.cli.MCPServer")
     @patch("mcpcap.cli.Config")
-    @patch("sys.argv", ["mcpcap", "--pcap-path", "/valid/path"])
+    @patch("sys.argv", ["mcpcap"])
     def test_main_unexpected_error(self, mock_config, mock_server):
         """Test main with unexpected error."""
         # Setup mocks
@@ -94,7 +92,7 @@ class TestCLI:
 
     @patch("mcpcap.cli.MCPServer")
     @patch("mcpcap.cli.Config")
-    @patch("sys.argv", ["mcpcap", "--pcap-path", "/valid/path", "--modules", "dhcp"])
+    @patch("sys.argv", ["mcpcap", "--modules", "dhcp"])
     def test_main_dhcp_module(self, mock_config, mock_server):
         """Test main with DHCP module specified."""
         # Setup mocks
@@ -109,8 +107,6 @@ class TestCLI:
 
         # Verify DHCP configuration
         mock_config.assert_called_once_with(
-            pcap_path="/valid/path",
-            pcap_url=None,
             modules=["dhcp"],
             protocols=["dhcp"],
             max_packets=None,
@@ -119,9 +115,7 @@ class TestCLI:
 
     @patch("mcpcap.cli.MCPServer")
     @patch("mcpcap.cli.Config")
-    @patch(
-        "sys.argv", ["mcpcap", "--pcap-path", "/valid/path", "--modules", "dns,dhcp"]
-    )
+    @patch("sys.argv", ["mcpcap", "--modules", "dns,dhcp"])
     def test_main_multiple_modules(self, mock_config, mock_server):
         """Test main with multiple modules specified."""
         # Setup mocks
@@ -136,8 +130,6 @@ class TestCLI:
 
         # Verify multi-module configuration
         mock_config.assert_called_once_with(
-            pcap_path="/valid/path",
-            pcap_url=None,
             modules=["dns", "dhcp"],
             protocols=["dns", "dhcp"],
             max_packets=None,

@@ -18,50 +18,17 @@ class TestDHCPModule:
         module = DHCPModule(config)
         assert module.protocol_name == "DHCP"
 
-    def test_list_pcap_files_empty_directory(self):
-        """Test listing PCAP files when directory is empty."""
-        config = Mock()
-        config.list_pcap_files.return_value = []
-        config.pcap_path = "/test/path"
-        config.is_remote = False
 
-        module = DHCPModule(config)
-        result = module.list_pcap_files()
-
-        assert "No PCAP files found" in result
-        assert "/test/path" in result
-
-    def test_list_pcap_files_with_files(self):
-        """Test listing PCAP files when files exist."""
-        config = Mock()
-        config.list_pcap_files.return_value = ["dhcp1.pcap", "dhcp2.pcapng"]
-        config.pcap_path = "/test/path"
-        config.is_remote = False
-        config.is_direct_file_path = False
-
-        module = DHCPModule(config)
-        result = module.list_pcap_files()
-
-        assert "dhcp1.pcap" in result
-        assert "dhcp2.pcapng" in result
-        assert "/test/path" in result
-
-    def test_list_dhcp_packets_file_not_found(self):
+    def test_analyze_dhcp_packets_file_not_found(self):
         """Test analyzing DHCP packets when file doesn't exist."""
-        config = Mock()
-        config.get_pcap_file_path.return_value = "/nonexistent/file.pcap"
-        config.list_pcap_files.return_value = ["other.pcap"]
-        config.pcap_path = "/test/path"
-        config.is_remote = False
-
+        config = Config()
         module = DHCPModule(config)
 
-        with patch("os.path.exists", return_value=False):
-            result = module.list_dhcp_packets("nonexistent.pcap")
+        result = module.analyze_dhcp_packets("/nonexistent/file.pcap")
 
         assert "error" in result
         assert "not found" in result["error"]
-        assert result["available_files"] == ["other.pcap"]
+        assert result["pcap_file"] == "/nonexistent/file.pcap"
 
     def test_analyze_dhcp_packets_success(self):
         """Test successful DHCP packet analysis."""
@@ -112,10 +79,10 @@ class TestDHCPModule:
             temp_path = tmp_file.name
 
         try:
-            config = Config(pcap_path=temp_path)
+            config = Config()
             module = DHCPModule(config)
 
-            result = module.analyze_packets(temp_path)
+            result = module._analyze_protocol_file(temp_path)
 
             # Verify basic structure
             assert "file" in result
@@ -175,10 +142,10 @@ class TestDHCPModule:
             temp_path = tmp_file.name
 
         try:
-            config = Config(pcap_path=temp_path)
+            config = Config()
             module = DHCPModule(config)
 
-            result = module.analyze_packets(temp_path)
+            result = module._analyze_protocol_file(temp_path)
 
             assert result["total_packets"] == 1
             assert result["dhcp_packets_found"] == 0
@@ -212,10 +179,10 @@ class TestDHCPModule:
             temp_path = tmp_file.name
 
         try:
-            config = Config(pcap_path=temp_path, max_packets=2)
+            config = Config(max_packets=2)
             module = DHCPModule(config)
 
-            result = module.analyze_packets(temp_path)
+            result = module._analyze_protocol_file(temp_path)
 
             assert result["dhcp_packets_found"] == 3  # Total found
             assert result["dhcp_packets_analyzed"] == 2  # Limited to 2
@@ -305,42 +272,37 @@ class TestDHCPModuleRemoteFiles:
 
     def test_remote_direct_file_url(self):
         """Test analyzing DHCP packets from a direct remote file URL."""
-        config = Mock()
-        config.is_remote = True
-        config.is_direct_file_url = True
-        config.list_pcap_files.return_value = ["remote_dhcp.pcap"]
-        config.download_pcap_file.return_value = "/tmp/downloaded.pcap"
-
+        config = Config()
         module = DHCPModule(config)
 
         with (
+            patch.object(module, "_download_pcap_file") as mock_download,
+            patch.object(module, "_analyze_protocol_file") as mock_analyze,
             patch("tempfile.NamedTemporaryFile") as mock_temp,
-            patch.object(module, "analyze_packets") as mock_analyze,
             patch("os.unlink"),
         ):
             mock_temp.return_value.__enter__.return_value.name = "/tmp/temp.pcap"
+            mock_download.return_value = "/tmp/downloaded.pcap"
             mock_analyze.return_value = {"packets": [], "stats": {}}
 
-            module.list_dhcp_packets()
+            result = module.analyze_dhcp_packets("http://example.com/remote.pcap")
 
-            config.download_pcap_file.assert_called_once()
+            mock_download.assert_called_once_with("http://example.com/remote.pcap", "/tmp/temp.pcap")
             mock_analyze.assert_called_once_with("/tmp/downloaded.pcap")
 
     def test_remote_download_failure(self):
         """Test handling of remote file download failures."""
-        config = Mock()
-        config.is_remote = True
-        config.is_direct_file_url = True
-        config.list_pcap_files.return_value = ["remote_dhcp.pcap"]
-        config.download_pcap_file.side_effect = Exception("Download failed")
-        config.pcap_url = "http://example.com/dhcp.pcap"
-
+        config = Config()
         module = DHCPModule(config)
 
-        with patch("tempfile.NamedTemporaryFile") as mock_temp:
+        with (
+            patch.object(module, "_download_pcap_file") as mock_download,
+            patch("tempfile.NamedTemporaryFile") as mock_temp,
+        ):
             mock_temp.return_value.__enter__.return_value.name = "/tmp/temp.pcap"
+            mock_download.side_effect = ValueError("Download failed")
 
-            result = module.list_dhcp_packets()
+            result = module.analyze_dhcp_packets("http://example.com/dhcp.pcap")
 
             assert "error" in result
             assert "Download failed" in result["error"]
@@ -352,28 +314,14 @@ class TestDHCPConfig:
 
     def test_config_with_dhcp_module(self):
         """Test configuration with DHCP module specified."""
-        with (
-            patch("os.path.exists", return_value=True),
-            patch("os.path.isdir", return_value=True),
-        ):
-            config = Config(
-                pcap_path="/valid/path", modules=["dhcp"], protocols=["dhcp"]
-            )
-            assert "dhcp" in config.modules
-            assert "dhcp" in config.protocols
+        config = Config(modules=["dhcp"], protocols=["dhcp"])
+        assert "dhcp" in config.modules
+        assert "dhcp" in config.protocols
 
     def test_config_with_multiple_modules(self):
         """Test configuration with multiple modules including DHCP."""
-        with (
-            patch("os.path.exists", return_value=True),
-            patch("os.path.isdir", return_value=True),
-        ):
-            config = Config(
-                pcap_path="/valid/path",
-                modules=["dns", "dhcp"],
-                protocols=["dns", "dhcp"],
-            )
-            assert "dns" in config.modules
-            assert "dhcp" in config.modules
-            assert "dns" in config.protocols
-            assert "dhcp" in config.protocols
+        config = Config(modules=["dns", "dhcp"], protocols=["dns", "dhcp"])
+        assert "dns" in config.modules
+        assert "dhcp" in config.modules
+        assert "dns" in config.protocols
+        assert "dhcp" in config.protocols

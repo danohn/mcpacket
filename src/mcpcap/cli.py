@@ -20,27 +20,16 @@ def main():
         int: Exit code (0 for success, 1 for error)
 
     Raises:
-        ValueError: If the provided PCAP path is invalid
         KeyboardInterrupt: If the user interrupts the server
         Exception: For any unexpected errors during server operation
     """
     parser = argparse.ArgumentParser(description="mcpcap MCP Server")
 
-    # PCAP source options (mutually exclusive)
-    source_group = parser.add_mutually_exclusive_group(required=True)
-    source_group.add_argument(
-        "--pcap-path", help="Path to PCAP file or directory containing PCAP files"
-    )
-    source_group.add_argument(
-        "--pcap-url",
-        help="HTTP URL to PCAP file (direct link) or directory containing PCAP files",
-    )
-
     # Analysis options
     parser.add_argument(
         "--modules",
-        help="Comma-separated list of modules to load (default: dns)",
-        default="dns",
+        help="Comma-separated list of modules to load (default: dns,dhcp)",
+        default="dns,dhcp",
     )
     parser.add_argument(
         "--max-packets",
@@ -52,13 +41,11 @@ def main():
 
     try:
         # Parse modules and automatically set protocols to match
-        modules = args.modules.split(",") if args.modules else ["dns"]
+        modules = args.modules.split(",") if args.modules else ["dns", "dhcp"]
         protocols = modules  # Protocols automatically match loaded modules
 
         # Initialize configuration
         config = Config(
-            pcap_path=args.pcap_path,
-            pcap_url=args.pcap_url,
             modules=modules,
             protocols=protocols,
             max_packets=args.max_packets,

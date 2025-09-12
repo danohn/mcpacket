@@ -1,7 +1,5 @@
 """DNS analysis module."""
 
-import os
-import tempfile
 from datetime import datetime
 from typing import Any
 
@@ -19,128 +17,21 @@ class DNSModule(BaseModule):
         """Return the name of the protocol this module analyzes."""
         return "DNS"
 
-    def list_dns_packets(self, pcap_file: str = "") -> dict[str, Any]:
+    def analyze_dns_packets(self, pcap_file: str) -> dict[str, Any]:
         """
-        Analyze DNS packets from a PCAP file and return a summary of each packet.
+        Analyze DNS packets from a PCAP file and return comprehensive analysis results.
 
         Args:
-            pcap_file: Path to the PCAP file to analyze. Leave empty for direct URL remotes
-                      or when using the first available file in local directories.
+            pcap_file: Path to local PCAP file or HTTP URL to remote PCAP file
 
         Returns:
             A structured dictionary containing DNS packet analysis results
         """
-        # Handle remote files
-        if self.config.is_remote:
-            # For direct file URLs, always use the URL file (ignore pcap_file parameter)
-            if self.config.is_direct_file_url:
-                available_files = self.config.list_pcap_files()
-                if not available_files:
-                    return {
-                        "error": "No PCAP file found at the provided URL",
-                        "pcap_url": self.config.pcap_url,
-                    }
-                pcap_file = available_files[0]  # Use the actual filename from URL
-            elif not pcap_file:
-                # For directory URLs, if no file specified, use the first available
-                available_files = self.config.list_pcap_files()
-                if not available_files:
-                    return {
-                        "error": "No PCAP files found at the provided URL",
-                        "pcap_url": self.config.pcap_url,
-                        "available_files": [],
-                    }
-                pcap_file = available_files[0]
+        return self.analyze_packets(pcap_file)
 
-            # Download remote file to temporary location
-            try:
-                with tempfile.NamedTemporaryFile(
-                    suffix=".pcap", delete=False
-                ) as tmp_file:
-                    temp_path = tmp_file.name
 
-                local_path = self.config.download_pcap_file(pcap_file, temp_path)
-                result = self.analyze_packets(local_path)
-
-                # Clean up temporary file
-                try:
-                    os.unlink(local_path)
-                except OSError:
-                    pass  # Ignore cleanup errors
-
-                return result
-
-            except Exception as e:
-                # List available PCAP files for help
-                available_files = self.config.list_pcap_files()
-                return {
-                    "error": f"Failed to download PCAP file '{pcap_file}': {str(e)}",
-                    "available_files": available_files,
-                    "pcap_source": self.config.pcap_url,
-                }
-        else:
-            # Local file handling
-            if not pcap_file:
-                # If no file specified, use the first available local file
-                available_files = self.config.list_pcap_files()
-                if not available_files:
-                    return {
-                        "error": "No PCAP files found in directory",
-                        "pcap_directory": self.config.pcap_path,
-                        "available_files": [],
-                    }
-                pcap_file = available_files[0]
-
-            full_path = self.config.get_pcap_file_path(pcap_file)
-
-            # Check if local file exists
-            if not os.path.exists(full_path):
-                # List available PCAP files for help
-                available_files = self.config.list_pcap_files()
-                return {
-                    "error": f"PCAP file '{pcap_file}' not found",
-                    "available_files": available_files,
-                    "pcap_directory": self.config.pcap_path,
-                }
-
-            return self.analyze_packets(full_path)
-
-    def list_pcap_files(self) -> str:
-        """
-        List all available PCAP files in the configured directory or remote URL.
-
-        Returns:
-            A list of available PCAP files that can be analyzed
-        """
-        files = self.config.list_pcap_files()
-        source = (
-            self.config.pcap_url if self.config.is_remote else self.config.pcap_path
-        )
-
-        if files:
-            if self.config.is_remote and self.config.is_direct_file_url:
-                return f"Direct PCAP file URL: {source}\\n- {files[0]}"
-            elif not self.config.is_remote and self.config.is_direct_file_path:
-                return f"Direct PCAP file path: {source}\\n- {files[0]}"
-            else:
-                source_type = "remote server" if self.config.is_remote else "directory"
-                return (
-                    f"Available PCAP files in {source_type} {source}:\\n"
-                    + "\\n".join(f"- {f}" for f in sorted(files))
-                )
-        else:
-            source_type = "remote server" if self.config.is_remote else "directory"
-            return f"No PCAP files found in {source_type} {source}"
-
-    def analyze_packets(self, pcap_file: str) -> dict[str, Any]:
-        """Analyze DNS packets in a PCAP file.
-
-        Args:
-            pcap_file: Full path to the PCAP file
-
-        Returns:
-            Analysis results as a dictionary
-        """
+    def _analyze_protocol_file(self, pcap_file: str) -> dict[str, Any]:
+        """Perform the actual DNS packet analysis on a local PCAP file."""
         try:
             packets = rdpcap(pcap_file)
             dns_packets = [pkt for pkt in packets if pkt.haslayer(DNS)]
@@ -341,6 +232,7 @@ class DNSModule(BaseModule):
             "unique_domains_queried": len(unique_domains),
             "unique_domains": list(unique_domains),
         }
+
 
     def setup_prompts(self, mcp: FastMCP) -> None:
         """Set up DNS-specific analysis prompts for the MCP server.

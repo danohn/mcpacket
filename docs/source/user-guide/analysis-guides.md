@@ -71,7 +71,7 @@ Look for domains with these characteristics:
 
 1. **Initial Assessment**
    ```
-   Use list_dns_packets() to get overview statistics
+   Use analyze_dns_packets() to get overview statistics
    Look for unusual domain counts or query patterns
    ```
 

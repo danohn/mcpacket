@@ -218,3 +218,8 @@ src/mcpcap/_version.py
 .DS_Store
 plan.md
 key.pem
+
+# Website files (used separately)
+index.html
+script.js
+styles.css

@@ -13,22 +13,22 @@ mcpcap Documentation
    :target: https://github.com/danohn/mcpcap/actions
    :alt: Test status
 
-A modular Python MCP (Model Context Protocol) Server for analyzing PCAP files. mcpcap enables LLMs to read and analyze network packet captures from local or remote sources, providing structured JSON responses about network traffic.
+A modular Python MCP (Model Context Protocol) Server for analyzing PCAP files. mcpcap provides stateless analysis tools that accept local files or remote URLs as parameters, making it perfect for Claude Desktop and other MCP client integration.
 
 Features
 --------
 
-✅ **Modular Architecture**: Easily extensible to support new protocols
+✅ **Stateless MCP Tools**: Each analysis tool accepts PCAP file paths or URLs as parameters
 
-✅ **DNS Analysis**: Comprehensive DNS packet parsing and analysis
+✅ **Protocol Support**: DNS and DHCP analysis with easy extensibility for new protocols
 
-✅ **Robust Error Handling**: Gracefully handles malformed packets
+✅ **Local & Remote Files**: Analyze files from local storage or HTTP URLs
 
-✅ **MCP Integration**: Seamless integration with LLM clients
+✅ **Specialized Prompts**: Security, networking, and forensic analysis guidance
 
-✅ **Security Focus**: Built-in security analysis prompts and indicators
+✅ **Robust Analysis**: Comprehensive packet parsing with error handling
 
-✅ **Real-world Ready**: Tested with actual network captures
+✅ **Claude Desktop Ready**: Perfect integration with MCP clients
 
 Quick Start
 -----------
@@ -43,9 +43,14 @@ Start the MCP server:
 
 .. code-block:: bash
 
-   mcpcap --pcap-path /path/to/pcap/files
+   mcpcap
 
-Then connect with your favorite MCP client to analyze DNS traffic!
+Then use analysis tools with any PCAP file:
+
+.. code-block:: javascript
+
+   analyze_dns_packets("/path/to/dns.pcap")
+   analyze_dhcp_packets("https://example.com/dhcp.pcap")
 
 .. toctree::
    :maxdepth: 2

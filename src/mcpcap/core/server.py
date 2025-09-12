@@ -38,25 +38,16 @@ class MCPServer:
         # Register tools for each loaded module
         for module_name, module in self.modules.items():
             if module_name == "dns":
-                self.mcp.tool(module.list_dns_packets)
+                self.mcp.tool(module.analyze_dns_packets)
             elif module_name == "dhcp":
-                self.mcp.tool(module.list_dhcp_packets)
-
-        # Register shared list_pcap_files tool (same for all modules)
-        if self.modules:
-            # Use the first available module for listing PCAP files
-            first_module = next(iter(self.modules.values()))
-            self.mcp.tool(first_module.list_pcap_files)
+                self.mcp.tool(module.analyze_dhcp_packets)
 
     def run(self) -> None:
         """Start the MCP server."""
         import sys
 
         # Log to stderr to avoid breaking MCP JSON-RPC protocol
-        source = (
-            self.config.pcap_url if self.config.is_remote else self.config.pcap_path
-        )
-        source_type = "remote URL" if self.config.is_remote else "directory"
-        print(f"Starting MCP server with PCAP {source_type}: {source}", file=sys.stderr)
+        enabled_modules = ", ".join(self.config.modules)
+        print(f"Starting mcpcap MCP server with modules: {enabled_modules}", file=sys.stderr)
 
         self.mcp.run()

@@ -25,7 +25,7 @@ Claude Desktop is Anthropic's official desktop application with built-in MCP sup
   "mcpServers": {
     "mcpcap": {
       "command": "mcpcap",
-      "args": ["--pcap-path", "/path/to/your/pcap/files"]
+      "args": []
     }
   }
 }
@@ -36,9 +36,10 @@ Claude Desktop is Anthropic's official desktop application with built-in MCP sup
 
 #### Usage Tips
 
-- Ask Claude to "analyze the DNS traffic in malware.pcap"
-- Request security-focused analysis: "Look for suspicious domains in this capture"
-- Get troubleshooting help: "Why are DNS queries failing in this network?"
+- Ask Claude to analyze DNS traffic: `analyze_dns_packets("/path/to/malware.pcap")`
+- Request security-focused analysis: "Use security_analysis prompt to examine this DNS data"
+- Get troubleshooting help: "Use network_troubleshooting prompt to diagnose DNS issues"
+- Analyze DHCP traffic: `analyze_dhcp_packets("/path/to/network.pcap")`
 
 ### MCP Inspector
 
@@ -53,7 +54,7 @@ MCP Inspector provides a web-based interface for testing MCP servers.
 npm install -g @modelcontextprotocol/inspector
 
 # Run with mcpcap
-npx @modelcontextprotocol/inspector mcpcap --pcap-path /path/to/pcaps
+npx @modelcontextprotocol/inspector mcpcap
 ```
 
 #### Features
@@ -80,7 +81,7 @@ async def analyze_dns():
     # Connect to mcpcap server
     server_params = StdioServerParameters(
         command="mcpcap",
-        args=["--pcap-path", "/path/to/pcaps"]
+        args=[]
     )
     
     async with stdio_client(server_params) as (read, write):
@@ -94,7 +95,7 @@ async def analyze_dns():
             
             # Call a tool
             result = await session.call_tool(
-                "list_dns_packets",
+                "analyze_dns_packets",
                 arguments={"pcap_file": "example.pcap"}
             )
             
@@ -114,7 +115,7 @@ Lists all PCAP files in the configured directory.
 
 **Returns**: List of available .pcap and .pcapng files
 
-### `list_dns_packets`
+### `analyze_dns_packets`
 
 Analyzes DNS packets in a PCAP file.
 
@@ -123,7 +124,7 @@ Analyzes DNS packets in a PCAP file.
 
 **Returns**: Structured JSON with DNS packet details and statistics
 
-### `list_dhcp_packets`
+### `analyze_dhcp_packets`
 
 Analyzes DHCP packets in a PCAP file.
 
@@ -157,16 +158,16 @@ Analyzes DHCP packets in a PCAP file.
 
 ```bash
 # Local directory
-mcpcap --pcap-path /path/to/pcaps
+mcpcap /path/to/pcaps
 
 # Local file
-mcpcap --pcap-path /path/to/specific.pcap
+mcpcap /path/to/specific.pcap
 
 # Remote file
-mcpcap --pcap-url https://example.com/capture.pcap
+mcpcap https://example.com/capture.pcap
 
 # With analysis options
-mcpcap --pcap-path /path/to/pcaps --max-packets 1000 --modules dns,dhcp
+mcpcap /path/to/pcaps --max-packets 1000 --modules dns,dhcp
 ```
 
 ### Client Configuration Examples
