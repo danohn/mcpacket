@@ -28,13 +28,13 @@ class BaseModule(ABC):
     @abstractmethod
     def _analyze_protocol_file(self, pcap_file: str) -> dict[str, Any]:
         """Analyze a local PCAP file for this protocol.
-        
+
         This method should be implemented by each module to perform
         the actual protocol-specific analysis.
-        
+
         Args:
             pcap_file: Path to local PCAP file
-            
+
         Returns:
             Analysis results dictionary
         """
@@ -114,7 +114,6 @@ class BaseModule(ABC):
             Local path to the downloaded file
         """
         import requests
-        
         try:
             response = requests.get(pcap_url, timeout=60, stream=True)
             response.raise_for_status()

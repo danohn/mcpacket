@@ -285,7 +285,7 @@ class TestDHCPModuleRemoteFiles:
             mock_download.return_value = "/tmp/downloaded.pcap"
             mock_analyze.return_value = {"packets": [], "stats": {}}
 
-            result = module.analyze_dhcp_packets("http://example.com/remote.pcap")
+            module.analyze_dhcp_packets("http://example.com/remote.pcap")
 
             mock_download.assert_called_once_with("http://example.com/remote.pcap", "/tmp/temp.pcap")
             mock_analyze.assert_called_once_with("/tmp/downloaded.pcap")
