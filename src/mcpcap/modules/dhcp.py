@@ -28,7 +28,6 @@ class DHCPModule(BaseModule):
         """
         return self.analyze_packets(pcap_file)
 
-
     def _analyze_protocol_file(self, pcap_file: str) -> dict[str, Any]:
         """Perform the actual DHCP packet analysis on a local PCAP file."""
         try:
@@ -234,7 +233,6 @@ class DHCPModule(BaseModule):
             "transaction_count": len(stats["transactions"]),
             "transactions": stats["transactions"],
         }
-
 
     def setup_prompts(self, mcp: FastMCP) -> None:
         """Set up DHCP-specific analysis prompts for the MCP server.

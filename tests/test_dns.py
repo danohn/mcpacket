@@ -17,7 +17,6 @@ class TestDNSModule:
         module = DNSModule(config)
         assert module.protocol_name == "DNS"
 
-
     def test_analyze_dns_packets_file_not_found(self):
         """Test analyzing DNS packets when file doesn't exist."""
         config = Config()

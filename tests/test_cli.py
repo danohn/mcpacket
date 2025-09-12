@@ -45,7 +45,9 @@ class TestCLI:
             result = main()
 
         # Verify error handling
-        mock_stderr.write.assert_any_call("Error: max_packets must be a positive integer")
+        mock_stderr.write.assert_any_call(
+            "Error: max_packets must be a positive integer"
+        )
         assert result == 1
 
     @patch("mcpcap.cli.MCPServer")

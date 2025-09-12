@@ -48,6 +48,9 @@ class MCPServer:
 
         # Log to stderr to avoid breaking MCP JSON-RPC protocol
         enabled_modules = ", ".join(self.config.modules)
-        print(f"Starting mcpcap MCP server with modules: {enabled_modules}", file=sys.stderr)
+        print(
+            f"Starting mcpcap MCP server with modules: {enabled_modules}",
+            file=sys.stderr,
+        )
 
         self.mcp.run()

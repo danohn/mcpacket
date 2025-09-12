@@ -18,7 +18,6 @@ class TestDHCPModule:
         module = DHCPModule(config)
         assert module.protocol_name == "DHCP"
 
-
     def test_analyze_dhcp_packets_file_not_found(self):
         """Test analyzing DHCP packets when file doesn't exist."""
         config = Config()
@@ -287,7 +286,9 @@ class TestDHCPModuleRemoteFiles:
 
             module.analyze_dhcp_packets("http://example.com/remote.pcap")
 
-            mock_download.assert_called_once_with("http://example.com/remote.pcap", "/tmp/temp.pcap")
+            mock_download.assert_called_once_with(
+                "http://example.com/remote.pcap", "/tmp/temp.pcap"
+            )
             mock_analyze.assert_called_once_with("/tmp/downloaded.pcap")
 
     def test_remote_download_failure(self):

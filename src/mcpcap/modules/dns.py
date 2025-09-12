@@ -29,7 +29,6 @@ class DNSModule(BaseModule):
         """
         return self.analyze_packets(pcap_file)
 
-
     def _analyze_protocol_file(self, pcap_file: str) -> dict[str, Any]:
         """Perform the actual DNS packet analysis on a local PCAP file."""
         try:
@@ -232,7 +231,6 @@ class DNSModule(BaseModule):
             "unique_domains_queried": len(unique_domains),
             "unique_domains": list(unique_domains),
         }
-
 
     def setup_prompts(self, mcp: FastMCP) -> None:
         """Set up DNS-specific analysis prompts for the MCP server.

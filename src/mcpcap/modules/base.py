@@ -114,6 +114,7 @@ class BaseModule(ABC):
             Local path to the downloaded file
         """
         import requests
+
         try:
             response = requests.get(pcap_url, timeout=60, stream=True)
             response.raise_for_status()
